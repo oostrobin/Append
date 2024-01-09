@@ -1,80 +1,70 @@
-(function () {
-  "use strict";
+class FormSubmitter {
+  constructor(formSelector, url) {
+    this.form = document.querySelector(formSelector);
+    this.url = url;
+    this.loadingElement = this.form.querySelector('.loading');
+    this.errorMessageElement = this.form.querySelector('.error-message');
+    this.sentMessageElement = this.form.querySelector('.sent-message');
 
-  let forms = document.querySelectorAll('.php-email-form');
+    this.form.addEventListener('submit', this.handleSubmit.bind(this));
+  }
 
-  forms.forEach( function(e) {
-    e.addEventListener('submit', function(event) {
-      event.preventDefault();
+  handleSubmit(event) {
+    event.preventDefault();
 
-      let thisForm = this;
+    this.showLoading();
 
-      let action = thisForm.getAttribute('action');
-      let recaptcha = thisForm.getAttribute('data-recaptcha-site-key');
-      
-      if( ! action ) {
-        displayError(thisForm, 'The form action property is not set!');
-        return;
-      }
-      thisForm.querySelector('.loading').classList.add('d-block');
-      thisForm.querySelector('.error-message').classList.remove('d-block');
-      thisForm.querySelector('.sent-message').classList.remove('d-block');
+    const formData = new FormData(this.form);
+    const data = {};
+    for (let [key, value] of formData.entries()) {
+      data[key] = value;
+    }
 
-      let formData = new FormData( thisForm );
-
-      if ( recaptcha ) {
-        if(typeof grecaptcha !== "undefined" ) {
-          grecaptcha.ready(function() {
-            try {
-              grecaptcha.execute(recaptcha, {action: 'php_email_form_submit'})
-              .then(token => {
-                formData.set('recaptcha-response', token);
-                php_email_form_submit(thisForm, action, formData);
-              })
-            } catch(error) {
-              displayError(thisForm, error);
-            }
-          });
-        } else {
-          displayError(thisForm, 'The reCaptcha javascript API url is not loaded!')
-        }
-      } else {
-        php_email_form_submit(thisForm, action, formData);
-      }
-    });
-  });
-
-  function php_email_form_submit(thisForm, action, formData) {
-    fetch(action, {
+    fetch(this.url, {
       method: 'POST',
-      body: formData,
-      headers: {'X-Requested-With': 'XMLHttpRequest'}
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
     })
-    .then(response => {
-      if( response.ok ) {
-        return response.text();
-      } else {
-        throw new Error(`${response.status} ${response.statusText} ${response.url}`); 
-      }
-    })
-    .then(data => {
-      thisForm.querySelector('.loading').classList.remove('d-block');
-      if (data.trim() == 'OK') {
-        thisForm.querySelector('.sent-message').classList.add('d-block');
-        thisForm.reset(); 
-      } else {
-        throw new Error(data ? data : 'Form submission failed and no error message returned from: ' + action); 
-      }
-    })
-    .catch((error) => {
-      displayError(thisForm, error);
-    });
+      .then(response => {
+        if (response.ok) {
+          this.showSentMessage();
+        } else {
+          throw new Error('Failed to send form data');
+        }
+      })
+      .catch(error => {
+        this.showError(error.message);
+      })
+      .finally(() => {
+        this.hideLoading();
+      });
   }
 
-  function displayError(thisForm, error) {
-    thisForm.querySelector('.loading').classList.remove('d-block');
-    thisForm.querySelector('.error-message').innerHTML = error;
-    thisForm.querySelector('.error-message').classList.add('d-block');
+  showLoading() {
+    this.loadingElement.style.display = 'block';
+    this.errorMessageElement.style.display = 'none';
+    this.sentMessageElement.style.display = 'none';
   }
 
-})();
+  showError(message) {
+    this.loadingElement.style.display = 'none';
+    this.errorMessageElement.textContent = message;
+    this.errorMessageElement.style.display = 'block';
+    this.sentMessageElement.style.display = 'none';
+  }
+
+  showSentMessage() {
+    this.loadingElement.style.display = 'none';
+    this.errorMessageElement.style.display = 'none';
+    this.sentMessageElement.style.display = 'block';
+  }
+
+  hideLoading() {
+    this.loadingElement.style.display = 'none';
+  }
+}
+
+const formSubmitter = new FormSubmitter('.php-email-form', 'https://apiv1.zorgeloosbesparen.nl/api/v1/send');
+
