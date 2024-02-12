@@ -1001,11 +1001,6 @@ section {
   color: var(--contrast-color);
 }
 
-.about .icon-boxes .col-md-6:nth-child(2) .icon-box,
-.about .icon-boxes .col-md-6:nth-child(4) .icon-box {
-  margin-top: -40px;
-}
-
 @media (max-width: 768px) {
 
   .about .icon-boxes .col-md-6:nth-child(2) .icon-box,
