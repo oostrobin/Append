@@ -66,5 +66,5 @@ class FormSubmitter {
   }
 }
 
-const formSubmitter = new FormSubmitter('.php-email-form', 'https://apiv1.zorgeloosbesparen.nl/api/v1/send');
+const formSubmitter = new FormSubmitter('.php-email-form', 'https://zb-mailserver.adaptable.app/api/v1/send');
 
