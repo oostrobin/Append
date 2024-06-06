@@ -1072,7 +1072,7 @@ section {
   padding-top: 40px;
 }
 
-.services .service-item:before {
+/* .services .service-item:before {
   content: "";
   position: absolute;
   top: 0;
@@ -1080,9 +1080,9 @@ section {
   right: 0;
   height: 2px;
   background: rgba(var(--default-color-rgb), 0.1);
-}
+} */
 
-.services .service-item::after {
+/* .services .service-item::after {
   content: "";
   position: absolute;
   top: 0;
@@ -1091,7 +1091,7 @@ section {
   height: 2px;
   background: var(--primary-color);
   border-right: 5px solid var(--background-color);
-}
+} */
 
 .services .service-item .icon {
   width: 48px;
